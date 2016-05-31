@@ -2,7 +2,7 @@
  *
  * A simple SMT-LIB v2 trace executor.
  *
- * Author: Tjark Weber <tjark.weber@it.uu.se> (2014-2015)
+ * Author: Tjark Weber <tjark.weber@it.uu.se> (2014-2016)
  * Author: Alberto Griggio <griggio@fbk.eu>
  *
  * Copyright (C) 2011 Alberto Griggio
@@ -69,6 +69,7 @@ static send_status get_next_cmd(FILE *in, Buffer *sendbuf)
 {
     send_status status = STATUS_CMD;
     int first = 1;
+    int ignore_newlines = 1;
     int comment = 0;
     int parens = 0;
     int escaped = 0;
@@ -82,6 +83,10 @@ static send_status get_next_cmd(FILE *in, Buffer *sendbuf)
         if (c == EOF) {
             return STATUS_EOF;
         }
+        if (ignore_newlines && c == '\n') {
+            continue;
+        }
+        ignore_newlines = 0;
         if (comment) {
             check_sat_idx = -1;
             if (c == '\n') {
@@ -388,7 +393,7 @@ int main(int argc, char **argv)
         }
     }
 
-    fputs("\n(exit)\n", to_child);
+    fputs("(exit)\n", to_child);
     fflush(to_child);
     wait(NULL);
 

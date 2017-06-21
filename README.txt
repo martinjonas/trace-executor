@@ -1,5 +1,4 @@
-This is the official "trace executor" for the Application track of 
-SMT-COMP 2016.
+This is the official "trace executor" for the Application track of SMT-COMP.
 
 The trace executor emulates an on-line interaction between an SMT solver and a
 client application, providing incremental queries to the SMT solver.

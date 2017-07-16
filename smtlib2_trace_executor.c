@@ -36,6 +36,8 @@
 #include <assert.h>
 #include <fcntl.h>
 
+//#define DEBUG
+
 typedef enum { STATUS_CMD, STATUS_EOF, STATUS_CHECK } send_status;
 
 
@@ -183,14 +185,31 @@ static int str_eq_skipws(const char *s, const char *target)
 
 static const char *get_line(FILE *src, Buffer *buf)
 {
+#ifdef DEBUG
+    printf("get_line:");
+    fflush(stdout);
+#endif
+
     assert(buf->data);
 
     buf->idx = 0;
     while (1) {
+#ifdef DEBUG
+        printf("fgetc:");
+        fflush(stdout);
+#endif
         int c = fgetc(src);
         if (c == EOF) {
+#ifdef DEBUG
+        printf("[EOF]");
+        fflush(stdout);
+#endif
             break;
         }
+#ifdef DEBUG
+        putchar(c);
+        fflush(stdout);
+#endif
         putbuf(buf, c);
         if (c == '\n') {
             break;
@@ -284,10 +303,18 @@ int main(int argc, char **argv)
     init_buf(&recvbuf);
     init_buf(&solbuf);
 
+#ifdef DEBUG
+    printf(">(set-option :print-success true)\n");
+    fflush(stdout);
+#endif
     fputs("(set-option :print-success true)\n", to_child);
     fflush(to_child);
     do {  // ignore empty lines
       response = get_line(from_child, &recvbuf);
+#ifdef DEBUG
+      printf("<%s", response);
+      fflush(stdout);
+#endif
     } while (str_eq_skipws(response, ""));
     if (!str_eq_skipws(response, "success")) {
         printf("BAD response to set-option command: '%s'\n", response);
@@ -334,13 +361,29 @@ int main(int argc, char **argv)
             return EXIT_ERROR;
         }
 
-        fwrite(sendbuf.data, 1, sendbuf.idx, to_child);
+        putbuf(&sendbuf, 0); // also put terminating 0
+
+        // break if command is (exit); otherwise the trace executor would hang
+        // if the solver does not generate a response for the (exit) command
+        if (str_eq_skipws(sendbuf.data, "(exit)")) {
+            break;
+        }
+
+#ifdef DEBUG
+        printf(">%s", sendbuf.data);
+        fflush(stdout);
+#endif
+        fwrite(sendbuf.data, 1, sendbuf.idx-1, to_child);
         sendbuf.idx = 0;
         fputc('\n', to_child);
         fflush(to_child);
 
         do {  // ignore empty lines
           response = get_line(from_child, &recvbuf);
+#ifdef DEBUG
+        printf("<%s", response);
+        fflush(stdout);
+#endif
         } while (str_eq_skipws(response, ""));
 
         switch (st) {

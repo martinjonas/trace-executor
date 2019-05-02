@@ -182,6 +182,10 @@ static int str_eq_skipws(const char *s, const char *target)
     }
 }
 
+static int str_is_solution(const char *s, int allow_unknown) {
+    return str_eq_skipws(s, "sat") || str_eq_skipws(s, "unsat") ||
+           (allow_unknown && str_eq_skipws(s, "unknown"));
+}
 
 static const char *get_line(FILE *src, Buffer *buf)
 {
@@ -235,7 +239,9 @@ static const char *get_line(FILE *src, Buffer *buf)
 
 static void usage(const char *progname)
 {
-    printf("Usage: %s SOLVER BENCHMARK_WITH_SOLUTIONS\n", progname);
+    printf("Usage: %s [--continue-after-unknown] SOLVER "
+           "BENCHMARK_WITH_SOLUTIONS\n",
+           progname);
     exit(EXIT_ERROR);
 }
 
@@ -253,15 +259,30 @@ int main(int argc, char **argv)
     FILE *from_child;
     send_status st;
     const char *response = NULL;
+    char *solver_name = NULL;
+    char *benchmark_name = NULL;
     FILE *benchmark = NULL;
     Buffer sendbuf;
     Buffer recvbuf;
     Buffer solbuf;
     int query_count = 0;
     int max_query_count = 0;
+    int continue_after_unknown = 0;
 
-    if (argc != 3) {
+    if (argc < 3 || argc > 4) {
         usage(argv[0]);
+    } else if (argc == 4) {
+        if (strcmp(argv[1], "--continue-after-unknown") == 0) {
+            continue_after_unknown = 1;
+            solver_name = argv[2];
+            benchmark_name = argv[3];
+        } else {
+            printf("Unknown option: %s\n", argv[1]);
+            exit(EXIT_ERROR);
+        }
+    } else {
+        solver_name = argv[1];
+        benchmark_name = argv[2];
     }
 
     if (pipe(fds_to) != 0 || pipe(fds_from) != 0) {
@@ -280,7 +301,7 @@ int main(int argc, char **argv)
         dup2(tmp_fd, STDERR_FILENO);
 
         char *execargs[2];
-        execargs[0] = argv[1];
+        execargs[0] = solver_name;
         execargs[1] = NULL;
 
         execv(execargs[0], execargs);
@@ -321,7 +342,7 @@ int main(int argc, char **argv)
         return EXIT_ERROR;
     }
 
-    benchmark = fopen(argv[2], "r");
+    benchmark = fopen(benchmark_name, "r");
     if (!benchmark) {
         printf("BAD benchmark (cannot open): '%s'\n", argv[2]);
         return EXIT_ERROR;
@@ -330,7 +351,7 @@ int main(int argc, char **argv)
     // parse expected solutions into solbuf
     while (1) {
         response = get_line(benchmark, &sendbuf);
-        if (str_eq_skipws(response, "sat") || str_eq_skipws(response, "unsat")) {
+        if (str_is_solution(response, continue_after_unknown)) {
             while (*response) {
                 putbuf(&solbuf, *response);
                 ++response;
@@ -342,9 +363,7 @@ int main(int argc, char **argv)
         }
     }
     while (!str_eq_skipws(response, "--- BENCHMARK BEGINS HERE ---")) {
-        if (!str_eq_skipws(response, "sat") &&
-            !str_eq_skipws(response, "unsat") &&
-            !str_eq_skipws(response, "unknown")) {
+        if (!str_is_solution(response, 1)) {
             printf("BAD expected result: '%s'\n", response);
             return EXIT_ERROR;
         }
@@ -399,22 +418,21 @@ int main(int argc, char **argv)
             break;
 
         case STATUS_CHECK:
-            if (!str_eq_skipws(response, "sat") &&
-                !str_eq_skipws(response, "unsat") &&
-                !str_eq_skipws(response, "unknown")) {
-              printf("BAD response to check command: '%s'\n", response);
-              return EXIT_ERROR;
+            if (!str_is_solution(response, 1)) {
+                printf("BAD response to check command: '%s'\n", response);
+                return EXIT_ERROR;
             }
 
             const char *expected = &solbuf.data[solbuf.idx];
-            assert(str_eq_skipws(expected, "sat") || str_eq_skipws(expected, "unsat"));
+            assert(str_is_solution(expected, continue_after_unknown));
             while (solbuf.data[solbuf.idx]) {
               ++solbuf.idx;
             }
             ++solbuf.idx; // skip over terminating 0
 
             if (str_eq_skipws(response, "sat") || str_eq_skipws(response, "unsat")) {
-                if (!str_eq_skipws(response, expected)) {
+                if (!str_eq_skipws(response, expected) &&
+                    !str_eq_skipws(expected, "unknown")) {
                     const char *s = response;
                     printf("WRONG solver response: got ");
                     SKIPWS(s, stdout);

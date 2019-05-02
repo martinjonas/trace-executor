@@ -2,6 +2,7 @@
  *
  * A simple SMT-LIB v2 trace executor.
  *
+ * Author: Andres Noetzli <noetzli@scs.stanford.edu> (2019)
  * Author: Tjark Weber <tjark.weber@it.uu.se> (2014-2016)
  * Author: Alberto Griggio <griggio@fbk.eu>
  *

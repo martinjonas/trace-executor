@@ -1,29 +1,11 @@
-This is the official "trace executor" for the Application track of SMT-COMP.
+This is the official "trace executor" for the Incremental Track (previously:
+Application Track) of SMT-COMP.
 
-The trace executor emulates an on-line interaction between an SMT solver and a
-client application, providing incremental queries to the SMT solver.
-
-  Usage: ./smtlib2_trace_executor SOLVER BENCHMARK_WITH_SOLUTIONS
-
-The format of the BENCHMARK_WITH_SOLUTIONS file is
-
-  ((sat|unsat|unknown)\n)*
-  --- BENCHMARK BEGINS HERE ---
-  SMT-LIBv2 script
-
-The prefix of solutions is used for checking the correctness of the results
-given by the SMT solver. If the prefix contains n "sat"/"unsat" solutions
-before the first "unknown", at most n (check-sat) queries will be executed.
-
-Author: Tjark Weber <tjark.weber@it.uu.se>
-
-Based on the official "trace executor" for the Application track of
-SMT-COMP 2011.
-
-Author: Alberto Griggio <griggio@fbk.eu>
 License: MIT
 
-Copyright (C) 2011 Alberto Griggio
+Copyright (C) 2019      Andres Noetzli
+Copyright (C) 2014-2016 Tjark Weber
+Copyright (C) 2011      Alberto Griggio
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),

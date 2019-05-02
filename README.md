@@ -1,5 +1,5 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://travis-ci.org/SMT-COMP/trace-executor.svg?branch=master)](https://travis-ci.org/SMT-COMP/trace-executor)
+[![Build Status](https://travis-ci.com/SMT-COMP/trace-executor.svg?branch=master)](https://travis-ci.com/SMT-COMP/trace-executor)
 
 SMT-COMP Trace-Executor
 ===============================================================================
@@ -17,9 +17,11 @@ client application, providing incremental queries to the SMT solver.
 
 The format of the BENCHMARK_WITH_SOLUTIONS file is
 
+```
   ((sat|unsat|unknown)\n)*
   --- BENCHMARK BEGINS HERE ---
   SMT-LIBv2 script
+```
 
 The prefix of solutions is used for checking the correctness of the results
 given by the SMT solver. If the prefix contains n "sat"/"unsat" solutions

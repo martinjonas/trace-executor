@@ -20,4 +20,7 @@ while read LINE; do
             echo "success"
             ;;
     esac
+
+    # Output some spurious empty lines
+    echo
 done

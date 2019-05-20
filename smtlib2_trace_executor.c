@@ -35,7 +35,7 @@
 #include <assert.h>
 #include <fcntl.h>
 
-//#define DEBUG
+// #define DEBUG
 
 typedef enum { STATUS_CMD, STATUS_EOF, STATUS_CHECK } send_status;
 
@@ -204,10 +204,11 @@ static const char *get_line(FILE *src, Buffer *buf)
         int c = fgetc(src);
         if (c == EOF) {
 #ifdef DEBUG
-        printf("[EOF]");
-        fflush(stdout);
+            printf("[EOF]");
+            fflush(stdout);
 #endif
-            break;
+            // If the end of the file is reached, we return NULL
+            return NULL;
         }
 #ifdef DEBUG
         putchar(c);
@@ -331,6 +332,10 @@ int main(int argc, char **argv)
     fflush(to_child);
     do {  // ignore empty lines
       response = get_line(from_child, &recvbuf);
+      if (response == NULL) {
+          printf("BAD response to set-option command: unexpected EOF\n");
+          return EXIT_ERROR;
+      }
 #ifdef DEBUG
       printf("<%s", response);
       fflush(stdout);
@@ -398,6 +403,10 @@ int main(int argc, char **argv)
 
         do {  // ignore empty lines
           response = get_line(from_child, &recvbuf);
+          if (response == NULL) {
+              printf("BAD response: unexpected EOF\n");
+              return EXIT_ERROR;
+          }
 #ifdef DEBUG
         printf("<%s", response);
         fflush(stdout);

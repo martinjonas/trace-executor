@@ -1,0 +1,4 @@
+#!/bin/sh
+
+docker run -v $(pwd):/dist:z smtcomp make -C trace-executor dist
+docker run -v $(pwd):/dist:z smtcomp sh -c "chown $(id -u):$(id -g) /dist/*.tar.gz"

@@ -58,8 +58,9 @@ incremental track where the trace-executor needs to interact with your
 solver.  Instead the solution for SMT-COMP is to add the
 trace executor to the solver binaries and upload a wrapped solver.
 Note that in the competition the SMT-COMP organizers will wrap your
-solver.  These instructions are meant to help solver authors to test
-their solvers on starexec before the competition.
+solver if you do not wrap it yourself.  These instructions are meant
+to help solver authors to test their solvers on starexec before the
+competition.
 
 To wrap your solver, first follow the above instructions for the
 Docker build or download the released tar archive.  Then rename your
@@ -67,10 +68,10 @@ solver's start script and extract the tar archive.
 
 ```sh
 cd mysolver/bin
-mv starexec_run_* original_starexec_run_default
+test -e smtcomp_run_incremental || mv starexec_run_* smtcomp_run_incremental
 tar -xzf .../SMT-COMP-20*-trace-executor.tar.gz
 ```
 
-Upload the wrapped solver to starexec.  Note that the wrapped solver
-can only be used in the incremental track with the incremental
-scrambler and post-processor.
+Upload the wrapped solver to starexec.  Note that this creates a
+new configuration that must be used with the incremental scrambler
+and post-processor.

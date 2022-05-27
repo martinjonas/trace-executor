@@ -1,8 +1,9 @@
 .PHONY : clean all test
 
+YEAR=2022
 CFLAGS=-g -O3
 LDFLAGS=
-DISTFILES=SMT-COMP-2021-trace-executor.tar.gz
+DISTFILES=SMT-COMP-$(YEAR)-trace-executor.tar.gz
 
 all: $(DISTFILES)
 
@@ -12,7 +13,7 @@ smtlib2_trace_executor: smtlib2_trace_executor.o
 clean:
 	rm -f smtlib2_trace_executor.o smtlib2_trace_executor $(DISTFILES) test_solver_log.txt
 
-SMT-COMP-2021-trace-executor.tar.gz: starexec_run_default smtlib2_trace_executor
+SMT-COMP-$(YEAR)-trace-executor.tar.gz: starexec_run_incremental smtlib2_trace_executor
 	tar -czf $@ $^
 
 test: smtlib2_trace_executor

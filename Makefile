@@ -1,6 +1,6 @@
 .PHONY : clean all test
 
-YEAR=2023
+YEAR=2024
 CFLAGS=-g -O3
 LDFLAGS=
 DISTFILES=SMT-COMP-$(YEAR)-trace-executor.tar.gz

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ "$1" != "$TEST_ARG" ]; then
+    exit 1
+fi
+
 set -e
 set -u
 

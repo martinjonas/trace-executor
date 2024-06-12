@@ -16,12 +16,26 @@ for bench in $(find "${SCRIPT_DIR}" -name "*.smt2"); do
     exit 1
   fi
 
+  export TEST_ARG=""
+
   result=$(diff <($1 "${SOLVER}" "${bench}") "${EXPECT}")
   if [ -z "$result" ]; then
-    echo "SUCCESS"
+    echo "SUCCESS without argument"
   else
     echo "ERROR: Difference between expected and actual result:"
     echo "${result}"
     exit 1
   fi
+
+  export TEST_ARG="argument"
+
+  result=$(diff <($1 "${SOLVER}" "argument" "${bench}") "${EXPECT}")
+  if [ -z "$result" ]; then
+    echo "SUCCESS with argument"
+  else
+    echo "ERROR: Difference between expected and actual result:"
+    echo "${result}"
+    exit 1
+  fi
+
 done

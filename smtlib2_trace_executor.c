@@ -239,7 +239,7 @@ static const char *get_line(FILE *src, Buffer *buf)
 
 static void usage(const char *progname)
 {
-    printf("Usage: %s [--continue-after-unknown] SOLVER "
+    printf("Usage: %s [--continue-after-unknown] SOLVER [SOLVER_OPTIONS] "
            "BENCHMARK_WITH_SOLUTIONS\n",
            progname);
     exit(EXIT_ERROR);
@@ -259,7 +259,7 @@ int main(int argc, char **argv)
     FILE *from_child;
     send_status st;
     const char *response = NULL;
-    char *solver_name = NULL;
+    char **execargs = NULL;
     char *benchmark_name = NULL;
     FILE *benchmark = NULL;
     Buffer sendbuf;
@@ -269,21 +269,20 @@ int main(int argc, char **argv)
     int max_query_count = 0;
     int continue_after_unknown = 0;
 
-    if (argc < 3 || argc > 4) {
+    if (argc < 3) {
         usage(argv[0]);
-    } else if (argc == 4) {
-        if (strcmp(argv[1], "--continue-after-unknown") == 0) {
+    } else if (strcmp(argv[1], "--continue-after-unknown") == 0) {
             continue_after_unknown = 1;
-            solver_name = argv[2];
-            benchmark_name = argv[3];
-        } else {
-            printf("Unknown option: %s\n", argv[1]);
-            exit(EXIT_ERROR);
-        }
+            benchmark_name = argv[argc-1];
+            execargs = &argv[2];
     } else {
-        solver_name = argv[1];
-        benchmark_name = argv[2];
+        benchmark_name = argv[argc-1];
+        execargs = &argv[1];
     }
+
+    //execargs must finish with NULL
+    argv[argc-1] = NULL;
+
 
     if (pipe(fds_to) != 0 || pipe(fds_from) != 0) {
         return EXIT_ERROR;
@@ -299,10 +298,6 @@ int main(int argc, char **argv)
         // redirect stderr to /dev/null
         int tmp_fd = open("/dev/null", O_WRONLY);
         dup2(tmp_fd, STDERR_FILENO);
-
-        char *execargs[2];
-        execargs[0] = solver_name;
-        execargs[1] = NULL;
 
         execv(execargs[0], execargs);
         printf("Cannot execute: %s\n", execargs[0]);
@@ -348,7 +343,7 @@ int main(int argc, char **argv)
 
     benchmark = fopen(benchmark_name, "r");
     if (!benchmark) {
-        printf("BAD benchmark (cannot open): '%s'\n", argv[2]);
+        printf("BAD benchmark (cannot open): '%s'\n", benchmark_name);
         return EXIT_ERROR;
     }
 

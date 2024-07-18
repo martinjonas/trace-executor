@@ -34,6 +34,8 @@
 #include <string.h>
 #include <assert.h>
 #include <fcntl.h>
+#include <time.h>
+#include <stdint.h>
 
 // #define DEBUG
 
@@ -239,7 +241,7 @@ static const char *get_line(FILE *src, Buffer *buf)
 
 static void usage(const char *progname)
 {
-    printf("Usage: %s [--continue-after-unknown] SOLVER [SOLVER_OPTIONS] "
+    printf("Usage: %s [--continue-after-unknown] [--print-time] SOLVER [SOLVER_OPTIONS] "
            "BENCHMARK_WITH_SOLUTIONS\n",
            progname);
     exit(EXIT_ERROR);
@@ -268,6 +270,7 @@ int main(int argc, char **argv)
     int query_count = 0;
     int max_query_count = 0;
     int continue_after_unknown = 0;
+    struct timespec start_time, cur_time;
 
     if (argc < 3) {
         usage(argv[0]);
@@ -283,6 +286,7 @@ int main(int argc, char **argv)
     //execargs must finish with NULL
     argv[argc-1] = NULL;
 
+    clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
 
     if (pipe(fds_to) != 0 || pipe(fds_from) != 0) {
         return EXIT_ERROR;
@@ -453,6 +457,13 @@ int main(int argc, char **argv)
             SKIPWS(s, stdout);
             fputc('\n', stdout);
             fflush(stdout);
+
+	    clock_gettime(CLOCK_MONOTONIC_RAW, &cur_time);
+
+	    uint64_t microseconds = (cur_time.tv_sec - start_time.tv_sec) * 1000000 +
+		(cur_time.tv_nsec - start_time.tv_nsec) / 1000;
+	    printf("time %.6f\n", (double) microseconds / 1000000);
+
             break;
         }
     }
